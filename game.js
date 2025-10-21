@@ -440,6 +440,7 @@
       // keep placeholder available if textures empty
     };
     // ensure first UI update
+    const preloadPaths = ['photos/memory1.jpg']; preloadPaths.forEach(p => { const img = new Image(); img.onload = () => { textures.push(img); memQueue.push(img); renderThumbs(); }; img.src = p; })
     updateUI();
   })();
 
