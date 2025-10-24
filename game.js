@@ -10,21 +10,13 @@
   const levelEl = document.getElementById('level');
   const scoreEl = document.getElementById('score');
   const linesEl = document.getElementById('lines');
-  const overlay = document.getElementById('overlay');
-  const memPhoto = document.getElementById('memory-photo');
-  const memCaption = document.getElementById('memory-caption');
-  const closeModal = document.getElementById('close-modal');
+  // ...existing code...
 
   const startBtn = document.getElementById('start-btn');
   const imagesUpload = document.getElementById('images-upload');
   const thumbs = document.getElementById('thumbs');
 
-  // Mobile controls
-  const leftBtn = document.getElementById('left');
-  const rightBtn = document.getElementById('right');
-  const rotateBtn = document.getElementById('rotate');
-  const downBtn = document.getElementById('down');
-  const dropBtn = document.getElementById('drop');
+  // Mobile controls removed
 
   // Game constants
   const COLS = 10;
@@ -50,9 +42,10 @@
   let totalLines = 0;
   let level = 1;
 
-  // Photo textures uploaded by user
-  let textures = []; // array of Image objects
-  let memQueue = []; // queue of photos to show when a line is cleared (cycle through uploaded images)
+  // Background image uploaded by user
+  let backgroundImg = null; // single Image object
+  let revealedRows = 0; // number of rows revealed from bottom
+  let fadeRows = []; // array of {row, alpha, fading} for fade effect
 
   // Tetris pieces (tetromino shapes)
   const TETROMINOES = {
@@ -82,9 +75,7 @@
   // Piece factory
   function createPiece(type){
     const shape = TETROMINOES[type].map(row => row.slice());
-    // assign a texture index to this piece (choose random from uploaded textures, fallback to color)
-    const texIndex = textures.length ? Math.floor(Math.random()*textures.length) : -1;
-    return { x: Math.floor(COLS/2) - Math.ceil(shape[0].length/2), y: 0, shape, texIndex, type };
+    return { x: Math.floor(COLS/2) - Math.ceil(shape[0].length/2), y: 0, shape, type };
   }
 
   // Collision detection
@@ -105,15 +96,14 @@
 
   // Merge piece into grid
   function merge(grid, piece){
-    const { shape, x: px, y: py, texIndex } = piece;
+    const { shape, x: px, y: py } = piece;
     for(let y=0;y<shape.length;y++){
       for(let x=0;x<shape[y].length;x++){
         if(shape[y][x]){
           const gx = px + x;
           const gy = py + y;
           if(gy>=0 && gy<ROWS && gx>=0 && gx<COLS){
-            // store an object with texture index or color
-            grid[gy][gx] = texIndex >= 0 ? { tex: texIndex } : 1;
+            grid[gy][gx] = 1;
           }
         }
       }
@@ -149,11 +139,11 @@
       grid.unshift(new Array(COLS).fill(0));
       y++; // re-check same y in next iteration
       rowCount++;
-      // queue a memory photo for this cleared line
-      if(textures.length) {
-        const photo = memQueue.length ? memQueue.shift() : textures[Math.floor(Math.random()*textures.length)];
-        memQueue.push(photo); // cycle - push back to end
-        showMemory(photo);
+      // Reveal a row of the background image with fade effect
+      if (backgroundImg) {
+        // Reveal from bottom up
+        const revealRow = ROWS - rowCount - (ROWS - y - 1);
+        fadeRows.push({ row: revealRow, alpha: 0, fading: true });
       }
     }
     return rowCount;
@@ -178,10 +168,44 @@
   }
 
   function draw(){
+    // Draw background
     ctx.fillStyle = '#08111b';
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // draw grid background
+    // Draw revealed part of background image with fade effect
+    if (backgroundImg) {
+      for (let r = 0; r < ROWS; r++) {
+        let reveal = false;
+        let alpha = 0;
+        // Check if this row is revealed or fading
+        if (r < revealedRows) {
+          reveal = true;
+          alpha = 1;
+        } else {
+          // Check if fading
+          const fade = fadeRows.find(f => f.row === r);
+          if (fade) {
+            reveal = true;
+            alpha = fade.alpha;
+          }
+        }
+        if (reveal && alpha > 0) {
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          // Calculate image crop for this row
+          const sy = Math.floor(backgroundImg.height * (r / ROWS));
+          const sh = Math.floor(backgroundImg.height / ROWS);
+          ctx.drawImage(
+            backgroundImg,
+            0, sy, backgroundImg.width, sh,
+            0, canvas.height - (r+1)*blockSize, canvas.width, blockSize
+          );
+          ctx.restore();
+        }
+      }
+    }
+
+    // draw grid background and blocks
     for(let y=0;y<ROWS;y++){
       for(let x=0;x<COLS;x++){
         const cell = grid[y][x];
@@ -197,11 +221,11 @@
 
     // draw current piece
     if(current){
-      const { shape, x: px, y: py, texIndex } = current;
+      const { shape, x: px, y: py } = current;
       for(let y=0;y<shape.length;y++){
         for(let x=0;x<shape[y].length;x++){
           if(shape[y][x]){
-            drawCell(px + x, py + y, texIndex >= 0 ? { tex: texIndex } : 1);
+            drawCell(px + x, py + y, 1);
           }
         }
       }
@@ -211,25 +235,8 @@
   function drawCell(gx, gy, cell){
     const x = gx * blockSize;
     const y = gy * blockSize;
-    if(typeof cell === 'object' && cell.tex !== undefined){
-      const img = textures[cell.tex];
-      if(img && img.complete){
-        // draw the image clipped into the block square
-        try{
-          ctx.drawImage(img, x, y, blockSize, blockSize);
-        }catch(e){
-          // fallback
-          ctx.fillStyle = '#6ec6ff';
-          ctx.fillRect(x,y,blockSize,blockSize);
-        }
-      } else {
-        ctx.fillStyle = '#6ec6ff';
-        ctx.fillRect(x,y,blockSize,blockSize);
-      }
-    } else {
-      ctx.fillStyle = '#6ec6ff';
-      ctx.fillRect(x,y,blockSize,blockSize);
-    }
+    ctx.fillStyle = '#6ec6ff';
+    ctx.fillRect(x,y,blockSize,blockSize);
     // subtle border
     ctx.strokeStyle = 'rgba(0,0,0,0.25)';
     ctx.strokeRect(x+0.5,y+0.5,blockSize-1,blockSize-1);
@@ -241,6 +248,21 @@
     const delta = time - lastTime;
     lastTime = time;
     dropCounter += delta;
+    // Fade effect for revealed rows
+    if (fadeRows.length) {
+      fadeRows.forEach(f => {
+        if (f.fading) {
+          f.alpha += delta / 400; // fade in over 400ms
+          if (f.alpha >= 1) {
+            f.alpha = 1;
+            f.fading = false;
+            revealedRows = Math.max(revealedRows, f.row + 1);
+          }
+        }
+      });
+      // Remove finished fades
+      fadeRows = fadeRows.filter(f => f.fading);
+    }
     if(dropCounter > dropInterval){
       playerDrop();
     }
@@ -337,31 +359,21 @@
     linesEl.textContent = totalLines;
   }
 
-  // Memory modal when a line clears
-  function showMemory(image){
-    // image is an Image object (from uploaded textures)
-    memPhoto.src = image.src || '';
-    memCaption.textContent = ''; // user can replace via instructions
-    overlay.classList.remove('hidden');
-  }
-  closeModal.addEventListener('click', () => {
-    overlay.classList.add('hidden');
-  });
+  // ...existing code...
 
   // Input handling (touch + click)
   function hookControls(){
-    leftBtn.addEventListener('touchstart', e => { e.preventDefault(); playerMove(-1); draw(); }, {passive:false});
-    rightBtn.addEventListener('touchstart', e => { e.preventDefault(); playerMove(1); draw(); }, {passive:false});
-    rotateBtn.addEventListener('touchstart', e => { e.preventDefault(); playerRotate(); draw(); }, {passive:false});
-    downBtn.addEventListener('touchstart', e => { e.preventDefault(); playerDrop(); draw(); }, {passive:false});
-    dropBtn.addEventListener('touchstart', e => { e.preventDefault(); hardDrop(); draw(); }, {passive:false});
-
-    // support click too (for desktop debugging)
-    leftBtn.addEventListener('click', ()=>{ playerMove(-1); draw(); });
-    rightBtn.addEventListener('click', ()=>{ playerMove(1); draw(); });
-    rotateBtn.addEventListener('click', ()=>{ playerRotate(); draw(); });
-    downBtn.addEventListener('click', ()=>{ playerDrop(); draw(); });
-    dropBtn.addEventListener('click', ()=>{ hardDrop(); draw(); });
+    // Rotate block by clicking/tapping anywhere on the canvas
+    canvas.addEventListener('click', (e) => {
+      if (!isRunning) return;
+      playerRotate();
+      draw();
+    });
+    canvas.addEventListener('touchstart', (e) => {
+      if (!isRunning) return;
+      playerRotate();
+      draw();
+    }, {passive:false});
 
     // keyboard for development
     window.addEventListener('keydown', e=>{
@@ -377,34 +389,35 @@
 
   // Upload handling: load images and show thumbnails
   imagesUpload.addEventListener('change', (ev) => {
-    const files = Array.from(ev.target.files).slice(0, 24); // limit to prevent memory issues
-    files.forEach(f => {
-      if(!f.type.startsWith('image/')) return;
-      const img = new Image();
-      const url = URL.createObjectURL(f);
-      img.onload = () => {
-        textures.push(img);
-        // also add to memQueue if not already
-        memQueue.push(img);
-        renderThumbs();
-        URL.revokeObjectURL(url);
-      };
-      img.src = url;
-    });
+    const file = ev.target.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      backgroundImg = img;
+      renderThumbs();
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
   });
 
   function renderThumbs(){
     thumbs.innerHTML = '';
-    textures.forEach((img, idx) => {
+    if (backgroundImg) {
       const t = document.createElement('img');
-      t.src = img.src;
-      t.title = `Texture ${idx+1}`;
+      t.src = backgroundImg.src;
+      t.title = 'Background';
       thumbs.appendChild(t);
-    });
+    }
   }
 
   // Start / reset
-  startBtn.addEventListener('click', startGame);
+  startBtn.addEventListener('click', () => {
+    // Hide controls panel when game starts
+    const controlsPanel = document.getElementById('controls-panel');
+    if (controlsPanel) controlsPanel.style.display = 'none';
+    startGame();
+  });
 
   function startGame(){
     // reset state
@@ -417,6 +430,8 @@
     level = 1;
     dropInterval = levelSpeeds[0];
     isRunning = true;
+    revealedRows = 0;
+    fadeRows = [];
     updateUI();
     requestAnimationFrame(update);
   }
@@ -432,15 +447,6 @@
     resizeCanvas();
     hookControls();
     draw();
-    // small instructional hint: tap Start then upload photos or upload first then start
-    // pre-load a placeholder if no images available (optional)
-    const placeholder = new Image();
-    placeholder.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect fill="%23ffb3c6" width="100%" height="100%"/><text x="50%" y="50%" font-size="24" dominant-baseline="middle" text-anchor="middle" fill="%23071025">Upload photos to use as blocks</text></svg>';
-    placeholder.onload = () => {
-      // keep placeholder available if textures empty
-    };
-    // ensure first UI update
-    const preloadPaths = ['photos/memory1.jpg']; preloadPaths.forEach(p => { const img = new Image(); img.onload = () => { textures.push(img); memQueue.push(img); renderThumbs(); }; img.src = p; })
     updateUI();
   })();
 

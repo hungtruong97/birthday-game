@@ -18,44 +18,37 @@
     </header>
 
     <main>
-      <div id="game-area">
-        <canvas id="game-canvas"></canvas>
-
-        <div id="overlay" class="hidden">
-          <div id="memory-modal">
-            <h2>Memory unlocked!</h2>
-            <img id="memory-photo" src="" alt="Memory photo" />
-            <p id="memory-caption"></p>
-            <div class="modal-actions">
-              <button id="close-modal">Close</button>
+      <div id="controls-wrapper">
+        <aside id="controls-panel">
+          <div id="gallery">
+            <label class="upload-label">
+              Upload photo (used as background)
+              <input id="images-upload" type="file" accept="image/*" />
+            </label>
+            <div id="thumbs"></div>
+            <p class="hint">Tip: upload a photo to reveal as you play. Everything stays local to your browser.</p>
+          </div>
+          <div id="actions">
+            <button id="start-btn">Start / Restart</button>
+            <label><input id="sound-toggle" type="checkbox" /> Sound</label>
+          </div>
+        </aside>
+      </div>
+      <div id="game-wrapper" style="display:none;">
+        <div id="game-area">
+          <canvas id="game-canvas"></canvas>
+          <div id="overlay" class="hidden">
+            <div id="memory-modal">
+              <h2>Memory unlocked!</h2>
+              <img id="memory-photo" src="" alt="Memory photo" />
+              <p id="memory-caption"></p>
+              <div class="modal-actions">
+                <button id="close-modal">Close</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <aside id="controls-panel">
-        <div id="gallery">
-          <label class="upload-label">
-            Upload photos (used as block textures)
-            <input id="images-upload" type="file" accept="image/*" multiple />
-          </label>
-          <div id="thumbs"></div>
-          <p class="hint">Tip: upload 6–12 photos for best variety. Everything stays local to your browser.</p>
-        </div>
-
-        <div id="mobile-controls">
-          <button id="left" class="ctl">◀</button>
-          <button id="rotate" class="ctl">⤾</button>
-          <button id="right" class="ctl">▶</button>
-          <button id="down" class="ctl">▼</button>
-          <button id="drop" class="ctl special">⤓</button>
-        </div>
-
-        <div id="actions">
-          <button id="start-btn">Start / Restart</button>
-          <label><input id="sound-toggle" type="checkbox" /> Sound</label>
-        </div>
-      </aside>
     </main>
 
     <footer>
