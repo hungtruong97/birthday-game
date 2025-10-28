@@ -1,53 +1,29 @@
-```markdown
-# Photo-Block Tetris — Prototype
+# Photo-Block Tetris — Specs
 
-A mobile-first Tetris-like web game that uses your family photos as block textures. Built as a one-week prototype and designed to be hosted as a static website (GitHub Pages / Netlify / Vercel).
+Current Features:
 
-Goals you specified:
-- 5 levels, increasing difficulty
-- Mobile device focused
-- Hosted on a website (static)
-- Buildable within one week
+- Tetris-like gameplay with manual controls (left, right, rotate, drop)
+- The goal: reveal a family photo by clearing rows
+- The background image is revealed only in the bottom 8 rows, one row at a time
+- When the 8th row is revealed, the game ends and shows a win message
+- The image is cropped and centered to fit the grid, preserving its aspect ratio
+- No distortion of the photo
+- Responsive mobile-first UI
+- No upload required: default photo is used
 
-What this prototype includes
-- index.html / style.css / game.js — a minimal Tetris implementation
-- Mobile touch controls (large buttons)
-- Photo upload (client-side) — uploaded images are used as block textures
-- Memory overlay: when a line is cleared, a photo from your uploads is shown as a "Memory unlocked!"
-- Progression across 5 levels — speed increases as lines are cleared
+How to play:
 
-How to use (development / local)
-1. Download the files (index.html, style.css, game.js, README.md) into a folder.
-2. Open index.html in a mobile browser or desktop browser (for testing).
-   - For mobile testing, you can serve locally with a simple static server:
-     - Python 3: `python -m http.server 8000` then visit `http://localhost:8000`
-     - Node: `npx serve .`
-3. Tap "Start / Restart" to begin.
-4. Upload photos using the "Upload photos" button. Photos stay in the browser — nothing is uploaded to any server.
-5. Play using the on-screen controls: left, rotate, right, soft drop, hard drop.
+1. Open `index.html` in your browser
+2. Tap Start/Restart to begin
+3. Use the on-screen controls to move, rotate, and drop blocks
+4. Clear rows at the bottom to reveal the photo
+5. When all 8 rows are revealed, you win!
 
-Photos & personalization
-- Upload 6–12 photos for good variety (max ~24 supported).
-- The uploaded images are used as textures for the falling blocks. When you clear a line, one of the uploaded photos is revealed in a modal.
-- For voice notes: you can keep voice files locally and pair them later — the prototype focuses on photos and the in-browser reveal. If you'd like, I can add a simple audio-pairing UI (upload audio files and attach to photos) in the next iteration.
+---
 
-Deploying to the web (quick)
-Option A — GitHub Pages:
-1. Create a repository on GitHub (e.g., `yourname/photo-tetris`).
-2. Push the files to the `main` branch.
-3. Enable GitHub Pages from repository Settings → Pages → Source: `main` / `/ (root)`.
-4. Visit the provided `https://yourname.github.io/photo-tetris/`.
+## TODO (next features)
 
-Option B — Netlify / Vercel:
-1. Drag & drop the project folder into Netlify Drop (https://app.netlify.com/drop), or connect repo in Netlify/Vercel.
-2. Deploy — site is served over HTTPS.
-
-One-week build plan (day-by-day)
-Day 1 — Core scaffold
-Day 2 — Mobile controls & responsiveness
-Day 3 — Photo upload & textures
-Day 4 — Level progression & polish
-Day 5 — Bugfixing & UI polish
-Day 6 — Testing on devices
-Day 7 — Deploy & wrap-up
-```
+1. Add levels: each level requires clearing a higher number of rows to win
+2. Update the UI to make it look cuter
+3. Show the win/message on the game screen (not just alert)
+4. Remove the first page, add new controls

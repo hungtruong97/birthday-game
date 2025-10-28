@@ -37,16 +37,20 @@
       <div id="game-wrapper" style="display:none;">
         <div id="game-area">
           <canvas id="game-canvas"></canvas>
-          <div id="overlay" class="hidden">
-            <div id="memory-modal">
-              <h2>Memory unlocked!</h2>
-              <img id="memory-photo" src="" alt="Memory photo" />
-              <p id="memory-caption"></p>
-              <div class="modal-actions">
-                <button id="close-modal">Close</button>
-              </div>
-            </div>
-          </div>
+        </div>
+        <div id="game-controls-row" style="display:flex;justify-content:center;gap:16px;margin:16px 0;">
+          <button id="btn-left" title="Left" style="font-size:2rem;padding:12px 20px;border-radius:8px;border:none;background:#173047;color:#fff;">
+            &#8592;
+          </button>
+          <button id="btn-rotate" title="Rotate" style="font-size:2rem;padding:12px 20px;border-radius:8px;border:none;background:#173047;color:#fff;">
+            &#8635;
+          </button>
+          <button id="btn-right" title="Right" style="font-size:2rem;padding:12px 20px;border-radius:8px;border:none;background:#173047;color:#fff;">
+            &#8594;
+          </button>
+          <button id="btn-drop" title="Drop" style="font-size:2rem;padding:12px 20px;border-radius:8px;border:none;background:#ff6f92;color:#fff;">
+            &#8595;
+          </button>
         </div>
       </div>
     </main>
@@ -56,6 +60,6 @@
     </footer>
   </div>
 
-  <script src="game.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
